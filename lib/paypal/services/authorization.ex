@@ -1,12 +1,25 @@
 defmodule Paypal.Services.Authorization do
-  alias Paypal.Authorization
-
-
+  @url            Application.get_env(:paypal, :url)
+  @client_id      Application.get_env(:paypal, :client_id)
+  @client_secret  Application.get_env(:paypal, :client_secret)
 
   def authorize do
-    {:ok, %HTTPoison.Response{body: body}} = HTTPoison.post(@paypal_url <> "/oauth2/token",
-      "grant_type=client_credentials", basic_headers, [ hackney: [basic_auth: {@client_id, @client_secret}]])
-    Poison.decode!(body, as: %Authorization{})
+    @url <> "oauth2/token"
+    |> HTTPoison.post("grant_type=client_credentials", 
+                      basic_headers, 
+                      hackney_credentials)
+    |> parse_response
+  end
+
+  defp hackney_credentials do
+    [ hackney: [ basic_auth: {@client_id, @client_secret} ] ]
+  end
+
+  defp parse_response(response) do
+    case response do
+      {:ok, %HTTPoison.Response{body: body}} -> Poison.decode!(body, as: %Paypal.Authorization{})
+      _ -> :error 
+    end
   end
 
   defp basic_headers,

@@ -1,27 +1,50 @@
 defmodule Paypal.Parsers.Payment do
-  alias Paypal.Payment
-  alias Paypal.Transaction
-  alias Paypal.Amount
-  alias Paypal.Details
-  alias Paypal.ItemList
-  alias Paypal.Item
-  alias Paypal.ShippingAddress
-  alias Paypal.RedirectUrls
-
-  @struct %Payment{
+  @struct %Paypal.Payment{
+            payer: %Paypal.Payer{
+              payer_info: %Paypal.PayerInfo{
+                shipping_address: %Paypal.ShippingAddress{}
+              }
+            },
             transactions: [
-              %Transaction{
-                amount: %Amount{
-                  details: %Details{}
+              %Paypal.Transaction{
+                amount: %Paypal.Amount{
+                  details: %Paypal.Details{}
                 },
-                item_list: %ItemList{
-                  items: [%Item{}]
+                item_list: %Paypal.ItemList{
+                  items: [%Paypal.Item{}]
                 },
-                shipping_address: %ShippingAddress{}
+                shipping_address: %Paypal.ShippingAddress{},
+                related_resources: [%Paypal.Sale{
+                  amount: %Paypal.Amount{},
+                  transaction_fee: %Paypal.TransactionFee{},
+                  links: [%Paypal.Link{}]
+                }]
               }
             ],
-            redirect_urls: %RedirectUrls{}
+            redirect_urls: %Paypal.RedirectUrls{}
           }
 
-  def parse(json), do: Poison.decode(json, as: @struct)
+  def compact(struct) when is_map(struct) do
+    struct 
+    |> Map.from_struct 
+    |> Enum.filter(fn {_, v} -> v != nil end)
+    |> Enum.map(fn {k, v} -> {k, compact(v)} end)
+    |> Enum.into(%{})
+  end
+
+  def compact(struct) when is_list(struct) do
+    struct
+    |> Enum.map(fn (e) -> compact(e) end)
+    |> List.flatten
+  end
+
+  def compact(struct), do: struct
+
+  def decode!(json), do: Poison.decode!(json, as: @struct)
+
+  def encode!(payment) do
+    payment
+    |> compact
+    |> Poison.encode!
+  end
 end

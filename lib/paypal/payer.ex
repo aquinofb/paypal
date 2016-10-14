@@ -1,3 +1,4 @@
 defmodule Paypal.Payer do
-  defstruct [:payment_method]
+  @derive [Poison.Encoder]
+  defstruct [:payment_method, :payer_info]
 end

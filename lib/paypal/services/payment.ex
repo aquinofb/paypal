@@ -1,59 +1,33 @@
 defmodule Paypal.Services.Payment do
-  alias Paypal.Payment
-  alias Paypal.Transaction
-  alias Paypal.Amount
-  alias Paypal.ItemList
-  alias Paypal.Item
-  alias Paypal.ShippingAddress
-  alias Paypal.RedirectUrls
-  alias Paypal.Payer
-  alias Paypal.PaymentOptions
+  @url Application.get_env(:paypal, :url)
 
-  @ie %Payment{
-        intent: "sale",
-        payer: %Payer{
-          payment_method: "paypal"
-        },
-        transactions: [
-          %{
-            amount: %{
-              total: "30.11",
-              currency: "EUR"
-            },
-            description: "Description...",
-            item_list: %ItemList{
-              items: [
-                %Item{
-                  name: "Galway Bay",
-                  description: "We Craft Beer",
-                  quantity: 1,
-                  price: "30.11",
-                  currency: "EUR"
-                }
-              ]
-            }
-          }
-        ],
-        redirect_urls: %RedirectUrls{
-          return_url: "http://www.amazon.com",
-          cancel_url: "http://www.hawaii.com"
-        }
-      }
+  def create(payment),
+    do: do_post(@url <> "payments/payment", 
+          Paypal.Parsers.Payment.encode!(payment))
 
-  @paypal_url "https://api.sandbox.paypal.com/v1"
+  def find(%Paypal.Payment{id: id}), 
+    do: do_post(@url <> "payments/payment/#{id}", %{})
 
-  def create do
-    {:ok, %HTTPoison.Response{body: body}} = HTTPoison.post(@paypal_url <> "/payments/payment",
-      Poison.encode!(@ie), headers)
-    Paypal.Parsers.Payment.parse(body)
+  def execute(%Paypal.Payment{id: id}, payer_id),
+    do: do_post(@url <> "payments/payment/#{id}/execute", 
+          Poison.encode!(%{payer_id: payer_id}))
+
+  defp do_post(url, params) do
+    url
+    |> HTTPoison.post(params, headers)
+    |> parse_response
   end
 
-  def paypay, do: @ie
+  defp parse_response(response) do
+    case response do
+      {:ok, %HTTPoison.Response{body: body}} -> Paypal.Parsers.Payment.decode!(body)
+      _ -> :error
+    end
+  end
 
-  def headers do
+  defp headers do
     [{"Accept", "application/json"},
      {"Content-Type", "application/json"},
-     {"Authorization", "Bearer "}]
+     {"Authorization", "Bearer #{Paypal.Services.Authorization.authorize.access_token}"}]
   end
-
 end

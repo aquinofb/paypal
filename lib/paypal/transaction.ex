@@ -1,4 +1,5 @@
 defmodule Paypal.Transaction do
-  defstruct [:amount, :description, :custom, :invoice_number,
-    :payment_options, :soft_descriptor, :item_list, :shipping_address]
+  @derive [Poison.Encoder]
+  defstruct [:amount, :description, :custom, :invoice_number, :shipping_address,
+    :payment_options, :soft_descriptor, :item_list, :related_resources]
 end
