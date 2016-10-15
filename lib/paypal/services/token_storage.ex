@@ -1,5 +1,5 @@
 defmodule Paypal.Services.TokenStorage do
-  def start_link(_type, _args) do
+  def start_link() do
     Agent.start_link(fn -> %Paypal.Token{} end, name: :token)
   end
 
