@@ -6,7 +6,7 @@ defmodule Paypal.Services.Payment do
           Paypal.Parsers.Payment.encode!(payment))
 
   def find(%Paypal.Payment{id: id}), 
-    do: do_post(@url <> "payments/payment/#{id}", %{})
+    do: do_get(@url <> "payments/payment/#{id}")
 
   def execute(%Paypal.Payment{id: id}, payer_id),
     do: do_post(@url <> "payments/payment/#{id}/execute", 
@@ -15,6 +15,12 @@ defmodule Paypal.Services.Payment do
   defp do_post(url, params) do
     url
     |> HTTPoison.post(params, headers)
+    |> parse_response
+  end
+
+  defp do_get(url) do
+    url
+    |> HTTPoison.get(url, %{}, headers)
     |> parse_response
   end
 
