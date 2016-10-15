@@ -20,7 +20,7 @@ defmodule Paypal.Services.Payment do
 
   defp do_get(url) do
     url
-    |> HTTPoison.get(url, %{}, headers)
+    |> HTTPoison.get(url, headers)
     |> parse_response
   end
 
@@ -34,6 +34,6 @@ defmodule Paypal.Services.Payment do
   defp headers do
     [{"Accept", "application/json"},
      {"Content-Type", "application/json"},
-     {"Authorization", "Bearer #{Paypal.Services.Authorization.authorize.access_token}"}]
+     {"Authorization", "Bearer #{Paypal.Services.TokenStorage.current.access_token}"}]
   end
 end

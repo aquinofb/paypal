@@ -17,7 +17,7 @@ defmodule Paypal.Services.Authorization do
 
   defp parse_response(response) do
     case response do
-      {:ok, %HTTPoison.Response{body: body}} -> Poison.decode!(body, as: %Paypal.Authorization{})
+      {:ok, %HTTPoison.Response{body: body}} -> Poison.decode!(body, as: %Paypal.Token{})
       _ -> :error 
     end
   end
