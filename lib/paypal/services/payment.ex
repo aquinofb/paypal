@@ -3,7 +3,7 @@ defmodule Paypal.Services.Payment do
 
   def create(payment),
     do: do_post(@url <> "payments/payment", 
-          Paypal.Parsers.Payment.encode!(payment))
+          Poison.encode!(payment))
 
   def find(%Paypal.Payment{id: id}), 
     do: do_get(@url <> "payments/payment/#{id}")
@@ -26,7 +26,7 @@ defmodule Paypal.Services.Payment do
 
   defp parse_response(response) do
     case response do
-      {:ok, %HTTPoison.Response{body: body}} -> Paypal.Parsers.Payment.decode!(body)
+      {:ok, %HTTPoison.Response{body: body}} -> Poison.decode!(body, as: %Paypal.Payment{})
       _ -> :error
     end
   end
@@ -34,6 +34,6 @@ defmodule Paypal.Services.Payment do
   defp headers do
     [{"Accept", "application/json"},
      {"Content-Type", "application/json"},
-     {"Authorization", "Bearer #{Paypal.Services.TokenStorage.current.access_token}"}]
+     {"Authorization", "Bearer #{Paypal.Services.Token.current.access_token}"}]
   end
 end

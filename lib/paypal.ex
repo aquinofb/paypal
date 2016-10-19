@@ -5,10 +5,10 @@ defmodule Paypal do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Paypal.Services.TokenStorage, []),
+      supervisor(Paypal.Storage.Supervisor, [:paypal]),
     ]
 
-    opts = [strategy: :one_for_one, name: Paypal.Supervisor]
+    opts = [strategy: :one_for_one, name: __MODULE__]
     Supervisor.start_link(children, opts)
   end
 end
